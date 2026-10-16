@@ -88,6 +88,22 @@ The bridge is downloaded automatically on first LSP start.
    These steps stay until the extension is on the Zed registry.
 4. Open a `.gd` file and wait for the first diagnostics.
 
+Zed's settings UI does not show the bridge settings. Run `zed: open settings`
+and add them to `settings.json` under `lsp.godot.settings`:
+
+```jsonc
+"lsp": {
+  "godot": {
+    "settings": {
+      "godot_path": "/home/you/Applications/Godot/Godot_v4.7-stable_linux.x86_64"
+    }
+  }
+}
+```
+
+Use whatever path to Godot is on your `PATH` for `godot_path`. If you're using Flatpak, and you still get LSP server warnings, you may have manually set `XDG_CONFIG_HOME`, which can cause the server to look for the Zed config in the wrong directory. The Flatpak build of Zed keeps that file in
+`~/.var/app/dev.zed.Zed/config/zed/` instead of `~/.config/zed/`.
+
 Bridge path: `lsp.godot.binary.path` in user settings, absolute. Otherwise
 the downloaded file in the extension work dir is used
 (`~/.local/share/zed/extensions/work/godot` on Linux). To go back to a PATH
@@ -208,6 +224,15 @@ no settings file is read.
   `lsp_port` is set. Open a `.gd` file of the project before starting a debug
   session.
 - One editor window per project. Godot serves one client.
+- Zed reports `No Godot binary. Set the godot_path setting, or GODOT, or put
+  godot on PATH.` although `godot_path` is set: the bridge reads
+  `godot_path` from Zed's user `settings.json` itself, never from what Zed
+  passes it, and finds that file through `XDG_CONFIG_HOME`. The extension
+  starts the bridge with your login shell's environment, so check whether
+  your shell profile exports `XDG_CONFIG_HOME`. With the Flatpak build of
+  Zed, an export such as `XDG_CONFIG_HOME="$HOME/.config"` hides
+  `~/.var/app/dev.zed.Zed/config/zed/settings.json` from the bridge. Remove
+  the export, or put `godot` on PATH instead.
 - Reset: quit the editor, `pkill -x godot-bridge; pkill -x godot`, delete
   `$XDG_RUNTIME_DIR/godot-bridge` and `/tmp/godot-bridge-$UID`, the only
   places the bridge writes. On Windows, `taskkill /IM godot-bridge.exe /F`,
